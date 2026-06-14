@@ -3,286 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AnalizaFut 🧠 | Predicciones de Fútbol</title>
+    <title>AnalizaFut - Predicciones</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-home: #10b981; /* Verde */
-            --accent-away: #3b82f6; /* Azul */
-            --accent-draw: #64748b; /* Gris */
+            --bg-principal: #0f172a;
+            --bg-tarjeta: #1e293b;
+            --verde-neon: #00ff88;
+            --azul-neon: #00e1ff;
+            --rojo-neon: #ff3b30;
+            --texto: #f8fafc;
         }
 
         body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-principal);
+            color: var(--texto);
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
         }
 
-        header {
+        .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
-        header h1 {
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--verde-neon);
             margin: 0;
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            background: linear-gradient(to right, #3b82f6, #10b981);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        header p {
-            color: var(--text-muted);
-            margin-top: 5px;
+        .header p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin: 5px 0 0 0;
         }
 
         #contenedor-partidos {
-            width: 100%;
-            max-width: 600px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
         }
 
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        .partido-card {
+            background-color: var(--bg-tarjeta);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
             border: 1px solid #334155;
         }
 
-        .equipos-row {
+        .liga-tag {
+            font-size: 0.75rem;
+            color: var(--azul-neon);
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .fila-equipos {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 15px;
         }
 
-        .equipo-col {
-            flex: 1;
+        .bando {
             display: flex;
             flex-direction: column;
             align-items: center;
+            gap: 5px;
+            width: 40%;
             text-align: center;
-            gap: 8px;
         }
 
-        .logo-team {
-            width: 55px;
-            height: 55px;
-            object-fit: contain;
+        .bando img {
+            width: 45px;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            background: #2e3d52;
         }
 
-        .team-name {
-            font-size: 1rem;
+        .bando span {
+            font-size: 0.95rem;
             font-weight: 600;
         }
 
-        .vs-text {
-            font-weight: 700;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            padding: 0 10px;
-        }
-
-        .divider {
-            height: 1px;
-            background-color: #334155;
-            margin: 15px 0;
-        }
-
-        /* Barras de Probabilidad */
-        .prob-container {
+        .vs-box {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-        }
-
-        .bar-wrapper {
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            background-color: #0f172a;
-            border-radius: 8px;
-            position: relative;
-            height: 35px;
-            overflow: hidden;
-            border: 1px solid #1e293b;
+            justify-content: center;
+            width: 20%;
         }
 
-        .bar-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            transition: width 0.6s ease-out;
-            z-index: 1;
-        }
-
-        .bar-fill.home { background-color: rgba(16, 185, 129, 0.25); border-left: 4px solid var(--accent-home); }
-        .bar-fill.draw { background-color: rgba(100, 116, 139, 0.25); border-left: 4px solid var(--accent-draw); }
-        .bar-fill.away { background-color: rgba(59, 130, 246, 0.25); border-left: 4px solid var(--accent-away); }
-
-        .bar-text {
-            position: relative;
-            z-index: 2;
-            padding: 0 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
+        .vs-texto {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: bold;
         }
 
         .marcador-box {
-            text-align: center;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px dashed var(--accent-away);
-            padding: 8px;
-            border-radius: 8px;
+            background: #0f172a;
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 0.9rem;
-            font-weight: 700;
-            margin-top: 15px;
-            color: #60a5fa;
+            font-weight: bold;
+            color: var(--verde-neon);
+            margin-top: 5px;
+            border: 1px solid #1e293b;
         }
 
-        /* Animación de carga */
-        .loader {
-            border: 4px solid #1e293b;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 40px auto;
+        .seccion-poisson {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .barra-contenedor {
+            display: flex;
+            align-items: center;
+            background: #0f172a;
+            border-radius: 6px;
+            overflow: hidden;
+            height: 22px;
+            position: relative;
+            border: 1px solid #1e293b;
+        }
+
+        .barra-progreso {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .barra-progreso.local { background-color: rgba(0, 255, 136, 0.25); border-right: 3px solid var(--verde-neon); }
+        .barra-progreso.empate { background-color: rgba(0, 225, 255, 0.25); border-right: 3px solid var(--azul-neon); }
+        .barra-progreso.visita { background-color: rgba(255, 59, 48, 0.25); border-right: 3px solid var(--rojo-neon); }
+
+        .barra-texto {
+            position: absolute;
+            left: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            width: calc(100% - 20px);
+        }
+
+        .estado-msg {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            padding: 20px;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>AnalizaFut 🧠</h1>
-        <p>Predicciones matemáticas por Distribución de Poisson</p>
-    </header>
+    <div class="header">
+        <h1>AnalizaFut Mobile</h1>
+        <p>Predicciones de Poisson en Tiempo de Venezuela</p>
+    </div>
 
-    <main id="contenedor-partidos">
-        <div id="loader" class="loader"></div>
-    </main>
+    <div id="contenedor-partidos">
+        <div class="estado-msg">Cargando cartelera desde Render...</div>
+    </div>
 
     <script>
-        // Tu URL de Render ya configurada con el endpoint correcto
-        const URL_NUESTRO_SERVIDOR = "https://analizafut.onrender.com/api/predicciones";
+        const URL_BACKEND = "https://analizafut.onrender.com/api/predicciones";
 
-        async function inicializarPredictor() {
+        async function cargarPredicciones() {
             const contenedor = document.getElementById("contenedor-partidos");
 
             try {
-                const response = await fetch(URL_NUESTRO_SERVIDOR);
+                const respuesta = await fetch(URL_BACKEND);
+                if (!respuesta.ok) throw new Error("Respuesta de servidor inválida");
 
-                // Si el servidor de Render está despertando o descargando datos de la API de fútbol
-                if (response.status === 202) {
-                    const aviso = await response.json();
-                    contenedor.innerHTML = `<p style='text-align:center; color:#ff9800; padding:20px; font-weight:600;'>${aviso.mensaje}</p>`;
+                const json = await respuesta.json();
+
+                // Validamos que contenga la lista corregida 'partidos'
+                if (!json.partidos || json.partidos.length === 0) {
+                    contenedor.innerHTML = '<div class="estado-msg">No hay partidos disponibles para la fecha de hoy.</div>';
                     return;
                 }
 
-                const respuestaBackend = await response.json();
-                const partidosMapeados = respuestaBackend.data || [];
+                contenedor.innerHTML = ""; // Limpiamos el mensaje de carga viejo
 
-                // Quitamos el loader animado
-                const loader = document.getElementById("loader");
-                if (loader) loader.remove();
+                json.partidos.forEach(partido => {
+                    // Mapeo exacto basado en la estructura de tus DevTools
+                    const localNombre = partido.teams.home.name;
+                    const localBandera = partido.teams.home.logo;
+                    const visitaNombre = partido.teams.away.name;
+                    const visitaBandera = partido.teams.away.logo;
 
-                if (partidosMapeados.length === 0) {
-                    contenedor.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>No hay partidos del mundial agendados para hoy.</p>";
-                    return;
-                }
+                    const ligaNombre = partido.league.name || "Copa del Mundo";
+                    
+                    // Ajuste exacto para saltar la propiedad intermedia
+                    const pLocal = partido.predictionData.predictions.percent.home;
+                    const pEmpate = partido.predictionData.predictions.percent.draw;
+                    const pVisita = partido.predictionData.predictions.percent.away;
+                    const scoreEstimado = partido.predictionData.predictions.correct_score;
 
-                // Pintamos cada uno de los partidos guardados en el caché de Render
-                for (let item of partidosMapeados) {
-                    const card = document.createElement("div");
-                    card.className = "card";
-
-                    // Extraer porcentajes reales de la API (o usar el generador interno si fallan)
-                    let pLocal = 33, pEmpate = 34, pVisita = 33;
-                    let marcadorExacto = "No disponible";
-
-                    if (item.predictionData && item.predictionData.predictions) {
-                        const pred = item.predictionData.predictions;
-                        pLocal = parseFloat(pred.percent.home) || 33;
-                        pEmpate = parseFloat(pred.percent.draw) || 34;
-                        pVisita = parseFloat(pred.percent.away) || 33;
-
-                        if (pred.correct_score) {
-                            marcadorExacto = pred.correct_score;
-                        } else {
-                            marcadorExacto = `${pred.goals.home || 0} - ${pred.goals.away || 0}`;
-                        }
-                    }
-
-                    // Construcción del HTML interno de la tarjeta
-                    card.innerHTML = `
-                        <div class="equipos-row">
-                            <div class="equipo-col">
-                                <img class="logo-team" src="${item.teams.home.logo}" onerror="this.style.display='none'">
-                                <span class="team-name">${item.teams.home.name}</span>
+                    // Creamos la estructura visual móvil
+                    const tarjeta = document.createElement("div");
+                    tarjeta.className = "partido-card";
+                    tarjeta.innerHTML = `
+                        <div class="liga-tag">🏆 ${ligaNombre}</div>
+                        
+                        <div class="fila-equipos">
+                            <div class="bando">
+                                <img src="${localBandera}" alt="${localNombre}">
+                                <span>${localNombre}</span>
                             </div>
-                            <div class="vs-text">VS</div>
-                            <div class="equipo-col">
-                                <img class="logo-team" src="${item.teams.away.logo}" onerror="this.style.display='none'">
-                                <span class="team-name">${item.teams.away.name}</span>
+                            
+                            <div class="vs-box">
+                                <span class="vs-texto">VS</span>
+                                <div class="marcador-box">${scoreEstimado}</div>
+                            </div>
+                            
+                            <div class="bando">
+                                <img src="${visitaBandera}" alt="${visitaNombre}">
+                                <span>${visitaNombre}</span>
                             </div>
                         </div>
-                        <div class="divider"></div>
-                        <div class="prob-container">
-                            <div class="bar-wrapper">
-                                <div class="bar-fill home" style="width: ${pLocal}%"></div>
-                                <div class="bar-text"><span>Gana ${item.teams.home.name}</span><span>${pLocal}%</span></div>
+
+                        <div class="seccion-poisson">
+                            <div class="barra-contenedor">
+                                <div class="barra-progreso local" style="width: ${pLocal}"></div>
+                                <div class="barra-texto"><span>Victoria ${localNombre}</span> <span>${pLocal}</span></div>
                             </div>
-                            <div class="bar-wrapper">
-                                <div class="bar-fill draw" style="width: ${pEmpate}%"></div>
-                                <div class="bar-text"><span>Empate</span><span>${pEmpate}%</span></div>
+                            <div class="barra-contenedor">
+                                <div class="barra-progreso empate" style="width: ${pEmpate}"></div>
+                                <div class="barra-texto"><span>Probabilidad de Empate</span> <span>${pEmpate}</span></div>
                             </div>
-                            <div class="bar-wrapper">
-                                <div class="bar-fill away" style="width: ${pVisita}%"></div>
-                                <div class="bar-text"><span>Gana ${item.teams.away.name}</span><span>${pVisita}%</span></div>
+                            <div class="barra-contenedor">
+                                <div class="barra-progreso visita" style="width: ${pVisita}"></div>
+                                <div class="barra-texto"><span>Victoria ${visitaNombre}</span> <span>${pVisita}</span></div>
                             </div>
-                        </div>
-                        <div class="marcador-box">
-                            🎯 Marcador Probable según Poisson: ${marcadorExacto}
                         </div>
                     `;
-
-                    contenedor.appendChild(card);
-                }
+                    contenedor.appendChild(tarjeta);
+                });
 
             } catch (error) {
-                console.error(error);
-                const loader = document.getElementById("loader");
-                if (loader) loader.remove();
-                contenedor.innerHTML = "<p style='text-align:center; color:#ef4444; padding:20px;'>No se pudo conectar con el servidor en Render. Recuerda que puede tardar hasta 1 minuto en encender por primera vez.</p>";
+                console.error("Error en frontend:", error);
+                contenedor.innerHTML = `
+                    <div class="estado-msg" style="color: #ff3b30;">
+                        ⚠️ Error al conectar con el servidor.<br>
+                        <span style="font-size:0.75rem; color:#64748b;">Asegúrate de que el backend en Render esté encendido.</span>
+                    </div>`;
             }
         }
 
-        // Arrancar la app automáticamente al abrir la página
-        window.onload = inicializarPredictor;
+        // Ejecutar de forma automática al abrir la aplicación
+        cargarPredicciones();
     </script>
 </body>
 </html>
