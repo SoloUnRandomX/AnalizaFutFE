@@ -17,7 +17,7 @@
         .bar-fill { height: 100%; background: #3b82f6; }
         
         .live-tag { text-align: center; font-size: 1.1rem; font-weight: bold; color: #ef4444; margin-bottom: 10px; padding: 5px; border: 2px solid #ef4444; border-radius: 6px; }
-        .prediction-summary { text-align: center; margin-top: 10px; font-weight: bold; color: #fbbf24; font-size: 0.9rem; }
+        .prediction-summary { text-align: center; margin-top: 10px; font-weight: bold; color: #fbbf24; font-size: 0.95rem; }
         .logo-team { width: 40px; height: 40px; object-fit: contain; }
     </style>
 </head>
@@ -55,24 +55,39 @@
                     const card = document.createElement("div");
                     card.className = "card";
                     
-                    // 1. HEADER: Marcador o estado del partido
-                    let header = "";
-                    if (m.status === 'FINISHED') {
-                        header = `<div style="text-align:center; color:#10b981; font-weight:bold; margin-bottom:10px;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
-                    } else if (m.status === 'IN_PLAY' || m.status === 'PAUSED') {
-                        header = `<div class="live-tag">⏱️ En juego: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
-                    }
+                    // Header con reloj si está en juego
+                    let header = (m.status === 'FINISHED') 
+                        ? `<div style="text-align:center; color:#10b981; font-weight:bold; margin-bottom:10px;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`
+                        : `<div class="live-tag">⏱️ En juego: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
 
-                    // 2. PREDICCIONES: Solo si NO ha terminado
+                    // Lógica de Predicción
                     let probHTML = "";
                     if (m.status !== 'FINISHED') {
                         const p = m.prediccion;
+                        const [predH, predA] = p.score.split('-').map(Number);
+                        const realH = m.score.fullTime.home || 0;
+                        const realA = m.score.fullTime.away || 0;
+                        
+                        // Determinar si el marcador superó la predicción
+                        const superado = (realH > predH || realA > predA);
+                        
+                        // Lógica de ganador
                         let ganador = "Empate";
-                        if (p.percent.home > p.percent.away && p.percent.home > p.percent.draw) ganador = m.teams.home.name;
-                        else if (p.percent.away > p.percent.home && p.percent.away > p.percent.draw) ganador = m.teams.away.name;
+                        if (superado) {
+                            // Recálculo dinámico basado en quién va ganando ahora
+                            if (realH > realA) ganador = m.teams.home.name;
+                            else if (realA > realH) ganador = m.teams.away.name;
+                        } else {
+                            if (p.percent.home > p.percent.away && p.percent.home > p.percent.draw) ganador = m.teams.home.name;
+                            else if (p.percent.away > p.percent.home && p.percent.away > p.percent.draw) ganador = m.teams.away.name;
+                        }
+
+                        const textoPred = superado 
+                            ? `⚠️ Predicción superada. Marcador actual: ${realH}-${realA} a favor de ${ganador}`
+                            : `🎯 Predicción: ${p.score} a favor de ${ganador}`;
 
                         probHTML = `
-                            <div class="prediction-summary">🎯 Predicción: ${p.score} | Favorito: ${ganador}</div>
+                            <div class="prediction-summary">${textoPred}</div>
                             <div class="bar-container">
                                 <div class="bar-row"><span>${m.teams.home.name}</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.home}%"></div></div><span>${p.percent.home}%</span></div>
                                 <div class="bar-row"><span>Empate</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.draw}%"></div></div><span>${p.percent.draw}%</span></div>
