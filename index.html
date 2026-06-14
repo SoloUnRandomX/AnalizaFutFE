@@ -8,7 +8,7 @@
         body { font-family: sans-serif; background-color: var(--bg-color); color: #f8fafc; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .card { background-color: var(--card-bg); width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
         .equipos-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .team-box { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+        .team-box { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; text-align: center;}
         .logo-team { width: 50px; height: 50px; object-fit: contain; }
         .vs-text { font-weight: 800; color: #64748b; padding: 0 10px; }
         .bar-wrapper { height: 30px; background: #0f172a; margin: 6px 0; border-radius: 5px; overflow: hidden; position: relative; display: flex; align-items: center; }
@@ -40,16 +40,17 @@
                     
                     let body = isFinished 
                         ? `<div class="marcador" style="border-color:#10b981; color:#10b981;">🏁 Resultado: ${m.resultadoReal}</div>`
-                        : `<div class="bar-wrapper"><div class="bar-fill home" style="width:${m.prediccion.percent.home}%"></div><div class="bar-text"><span>${item.teams.home.name}</span><span>${m.prediccion.percent.home}%</span></div></div>
-                           <div class="bar-wrapper"><div class="bar-fill draw" style="width:${m.prediccion.percent.draw}%"></div><div class="bar-text"><span>Empate</span><span>${item.prediccion.percent.draw}%</span></div></div>
-                           <div class="bar-wrapper"><div class="bar-fill away" style="width:${m.prediccion.percent.away}%"></div><div class="bar-text"><span>${item.teams.away.name}</span><span>${m.prediccion.percent.away}%</span></div></div>
+                        : `<div class="bar-wrapper"><div class="bar-fill home" style="width:${m.prediccion.percent.home}%"></div><div class="bar-text"><span>${m.teams.home.name}</span><span>${m.prediccion.percent.home}%</span></div></div>
+                           <div class="bar-wrapper"><div class="bar-fill draw" style="width:${m.prediccion.percent.draw}%"></div><div class="bar-text"><span>Empate</span><span>${m.prediccion.percent.draw}%</span></div></div>
+                           <div class="bar-wrapper"><div class="bar-fill away" style="width:${m.prediccion.percent.away}%"></div><div class="bar-text"><span>${m.teams.away.name}</span><span>${m.prediccion.percent.away}%</span></div></div>
                            <div class="marcador">🎯 Marcador Probable: ${m.prediccion.score}</div>`;
 
+                    // AQUÍ ESTABA EL CAMBIO: .name en home y away
                     card.innerHTML = `
                         <div class="equipos-row">
-                            <div class="team-box"><img class="logo-team" src="${m.teams.home.crest}" onerror="this.style.display='none'"><span>${item.teams.home.name}</span></div>
+                            <div class="team-box"><img class="logo-team" src="${m.teams.home.crest}" onerror="this.style.display='none'"><span>${m.teams.home.name}</span></div>
                             <div class="vs-text">VS</div>
-                            <div class="team-box"><img class="logo-team" src="${m.teams.away.crest}" onerror="this.style.display='none'"><span>${item.teams.away.name}</span></div>
+                            <div class="team-box"><img class="logo-team" src="${m.teams.away.crest}" onerror="this.style.display='none'"><span>${m.teams.away.name}</span></div>
                         </div>
                         ${body}`;
                     cont.appendChild(card);
