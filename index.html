@@ -1,71 +1,90 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>AnalizaFut 🧠</title>
+    <title>AnalizaFut Live 🧠</title>
     <style>
         :root { --bg-color: #0f172a; --card-bg: #1e293b; }
-        body { font-family: sans-serif; background-color: var(--bg-color); color: #f8fafc; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: #f8fafc; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .tabs { margin-bottom: 20px; display: flex; gap: 10px; }
-        .tab-btn { background: #334155; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        .tab-btn { background: #334155; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .tab-btn:hover { background: #3b82f6; }
         .card { background-color: var(--card-bg); width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
-        .equipos-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .team-box { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; text-align: center; }
+        
+        /* Estilos de barras */
+        .bar-container { margin-top: 10px; }
+        .bar-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; margin: 5px 0; }
+        .bar-bg { flex-grow: 1; height: 8px; background: #0f172a; margin: 0 10px; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; background: #3b82f6; }
+        
+        .marcador-live { text-align: center; font-size: 1.2rem; font-weight: bold; color: #ef4444; margin-bottom: 10px; padding: 5px; border: 1px solid #ef4444; border-radius: 6px; }
         .logo-team { width: 40px; height: 40px; object-fit: contain; }
-        .marcador { text-align: center; margin-top: 10px; font-weight: bold; color: #60a5fa; padding: 8px; border: 1px dashed #60a5fa; border-radius: 6px; }
-        .live { color: #ef4444 !important; border-color: #ef4444 !important; border-style: solid !important; }
     </style>
 </head>
 <body>
     <h1>AnalizaFut 🧠</h1>
     <div class="tabs">
-        <button class="tab-btn" onclick="cargar('WC')">Selecciones 🌍</button>
-        <button class="tab-btn" onclick="cargar('CL')">Clubes 🏆</button>
+        <button class="tab-btn" onclick="iniciarApp('WC')">Selecciones 🌍</button>
+        <button class="tab-btn" onclick="iniciarApp('CL')">Clubes 🏆</button>
     </div>
-    <div id="contenedor">Haz clic en una categoría...</div>
+    <div id="contenedor">Selecciona una categoría para empezar...</div>
 
     <script>
         const API_URL = "https://analizafut.onrender.com/api/predicciones";
+        let intervalId = null;
+
+        // Función principal para iniciar el ciclo
+        function iniciarApp(compCode) {
+            if (intervalId) clearInterval(intervalId); // Limpiar refresco anterior
+            cargar(compCode); // Cargar inmediatamente
+            intervalId = setInterval(() => cargar(compCode), 10000); // 10s refresco
+        }
 
         async function cargar(compCode) {
-            const cont = document.getElementById("contenedor");
-            cont.innerHTML = "Cargando...";
-
             try {
                 const res = await fetch(`${API_URL}?comp=${compCode}`);
                 const data = await res.json();
+                const cont = document.getElementById("contenedor");
                 
-                // FILTRO: Solo partidos de HOY (ajustado a tu hora local)
+                // Filtro de hoy
                 const hoy = new Date().toDateString();
                 const filtrados = data.filter(m => new Date(m.utcDate).toDateString() === hoy);
                 
-                cont.innerHTML = filtrados.length === 0 ? "No hay partidos hoy." : "";
+                if (filtrados.length === 0) { cont.innerHTML = "No hay partidos hoy."; return; }
+                cont.innerHTML = "";
 
                 filtrados.forEach(m => {
                     const card = document.createElement("div");
                     card.className = "card";
                     
-                    // Lógica de visualización por estado
-                    let cuerpo = "";
+                    // Lógica de Marcador/Estado
+                    let header = "";
                     if (m.status === 'FINISHED') {
-                        cuerpo = `<div class="marcador" style="border-color:#10b981; color:#10b981;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
+                        header = `<div style="text-align:center; color:#10b981; font-weight:bold;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
                     } else if (m.status === 'IN_PLAY' || m.status === 'PAUSED') {
-                        cuerpo = `<div class="marcador live">🔴 En Vivo: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
-                    } else {
-                        cuerpo = `<div class="marcador">🎯 Pronóstico: ${m.prediccion.score} | Gana local: ${m.prediccion.percent.home}%</div>`;
+                        header = `<div class="marcador-live">🔴 ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
                     }
 
+                    // Barras de probabilidad
+                    const p = m.prediccion;
+                    const probHTML = p ? `
+                        <div class="bar-container">
+                            <div class="bar-row"><span>${m.teams.home.name}</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.home}%"></div></div><span>${p.percent.home}%</span></div>
+                            <div class="bar-row"><span>Empate</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.draw}%"></div></div><span>${p.percent.draw}%</span></div>
+                            <div class="bar-row"><span>${m.teams.away.name}</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.away}%"></div></div><span>${p.percent.away}%</span></div>
+                        </div>` : "";
+
                     card.innerHTML = `
-                        <div class="equipos-row">
-                            <div class="team-box"><img class="logo-team" src="${m.teams.home.crest}" onerror="this.style.display='none'"><span>${m.teams.home.name}</span></div>
-                            <div style="font-weight:bold; color:#64748b">VS</div>
-                            <div class="team-box"><img class="logo-team" src="${m.teams.away.crest}" onerror="this.style.display='none'"><span>${m.teams.away.name}</span></div>
+                        ${header}
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                            <div style="text-align:center"><img class="logo-team" src="${m.teams.home.crest}" onerror="this.style.display='none'"><br>${m.teams.home.name}</div>
+                            <div style="font-weight:bold">VS</div>
+                            <div style="text-align:center"><img class="logo-team" src="${m.teams.away.crest}" onerror="this.style.display='none'"><br>${m.teams.away.name}</div>
                         </div>
-                        ${cuerpo}`;
+                        ${probHTML}`;
                     cont.appendChild(card);
                 });
-            } catch (e) { cont.innerHTML = "Error al cargar."; }
+            } catch (e) { console.error("Error actualizando datos:", e); }
         }
     </script>
 </body>
