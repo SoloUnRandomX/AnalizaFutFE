@@ -55,26 +55,31 @@
                     const card = document.createElement("div");
                     card.className = "card";
                     
-                    // Header con reloj si está en juego
-                    let header = (m.status === 'FINISHED') 
-                        ? `<div style="text-align:center; color:#10b981; font-weight:bold; margin-bottom:10px;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`
-                        : `<div class="live-tag">⏱️ En juego: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
+                    // Lógica del Header (Corregida para evitar null-null)
+                    let header = "";
+                    if (m.status === 'FINISHED') {
+                        header = `<div style="text-align:center; color:#10b981; font-weight:bold; margin-bottom:10px;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
+                    } else if (m.status === 'IN_PLAY' || m.status === 'PAUSED') {
+                        header = `<div class="live-tag">⏱️ En juego: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
+                    } else {
+                        // Si es SCHEDULED o TIMED, mostramos la hora
+                        const hora = new Date(m.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        header = `<div style="text-align:center; color:#64748b; font-weight:bold; margin-bottom:10px;">📅 Por iniciar: ${hora}</div>`;
+                    }
 
                     // Lógica de Predicción
                     let probHTML = "";
                     if (m.status !== 'FINISHED') {
                         const p = m.prediccion;
                         const [predH, predA] = p.score.split('-').map(Number);
+                        // Usamos 0 si es null (partidos por iniciar)
                         const realH = m.score.fullTime.home || 0;
                         const realA = m.score.fullTime.away || 0;
                         
-                        // Determinar si el marcador superó la predicción
-                        const superado = (realH > predH || realA > predA);
+                        const superado = (m.status === 'IN_PLAY' && (realH > predH || realA > predA));
                         
-                        // Lógica de ganador
                         let ganador = "Empate";
                         if (superado) {
-                            // Recálculo dinámico basado en quién va ganando ahora
                             if (realH > realA) ganador = m.teams.home.name;
                             else if (realA > realH) ganador = m.teams.away.name;
                         } else {
