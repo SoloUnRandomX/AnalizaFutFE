@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnalizaFut 🧠 | Predicciones de Fútbol</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-home: #10b981; /* Verde */
+            --accent-away: #3b82f6; /* Azul */
+            --accent-draw: #64748b; /* Gris */
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to right, #3b82f6, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        #contenedor-partidos {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #334155;
+        }
+
+        .equipos-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .equipo-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+        }
+
+        .logo-team {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+        }
+
+        .team-name {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .vs-text {
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 0 10px;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #334155;
+            margin: 15px 0;
+        }
+
+        /* Barras de Probabilidad */
+        .prob-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bar-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #0f172a;
+            border-radius: 8px;
+            position: relative;
+            height: 35px;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+        }
+
+        .bar-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            transition: width 0.6s ease-out;
+            z-index: 1;
+        }
+
+        .bar-fill.home { background-color: rgba(16, 185, 129, 0.25); border-left: 4px solid var(--accent-home); }
+        .bar-fill.draw { background-color: rgba(100, 116, 139, 0.25); border-left: 4px solid var(--accent-draw); }
+        .bar-fill.away { background-color: rgba(59, 130, 246, 0.25); border-left: 4px solid var(--accent-away); }
+
+        .bar-text {
+            position: relative;
+            z-index: 2;
+            padding: 0 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .marcador-box {
+            text-align: center;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px dashed var(--accent-away);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-top: 15px;
+            color: #60a5fa;
+        }
+
+        /* Animación de carga */
+        .loader {
+            border: 4px solid #1e293b;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AnalizaFut 🧠</h1>
+        <p>Predicciones matemáticas por Distribución de Poisson</p>
+    </header>
+
+    <main id="contenedor-partidos">
+        <div id="loader" class="loader"></div>
+    </main>
+
+    <script>
+        // Tu URL de Render ya configurada con el endpoint correcto
+        const URL_NUESTRO_SERVIDOR = "https://analizafut.onrender.com/api/predicciones";
+
+        async function inicializarPredictor() {
+            const contenedor = document.getElementById("contenedor-partidos");
+
+            try {
+                const response = await fetch(URL_NUESTRO_SERVIDOR);
+
+                // Si el servidor de Render está despertando o descargando datos de la API de fútbol
+                if (response.status === 202) {
+                    const aviso = await response.json();
+                    contenedor.innerHTML = `<p style='text-align:center; color:#ff9800; padding:20px; font-weight:600;'>${aviso.mensaje}</p>`;
+                    return;
+                }
+
+                const respuestaBackend = await response.json();
+                const partidosMapeados = respuestaBackend.data || [];
+
+                // Quitamos el loader animado
+                const loader = document.getElementById("loader");
+                if (loader) loader.remove();
+
+                if (partidosMapeados.length === 0) {
+                    contenedor.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>No hay partidos del mundial agendados para hoy.</p>";
+                    return;
+                }
+
+                // Pintamos cada uno de los partidos guardados en el caché de Render
+                for (let item of partidosMapeados) {
+                    const card = document.createElement("div");
+                    card.className = "card";
+
+                    // Extraer porcentajes reales de la API (o usar el generador interno si fallan)
+                    let pLocal = 33, pEmpate = 34, pVisita = 33;
+                    let marcadorExacto = "No disponible";
+
+                    if (item.predictionData && item.predictionData.predictions) {
+                        const pred = item.predictionData.predictions;
+                        pLocal = parseFloat(pred.percent.home) || 33;
+                        pEmpate = parseFloat(pred.percent.draw) || 34;
+                        pVisita = parseFloat(pred.percent.away) || 33;
+
+                        if (pred.correct_score) {
+                            marcadorExacto = pred.correct_score;
+                        } else {
+                            marcadorExacto = `${pred.goals.home || 0} - ${pred.goals.away || 0}`;
+                        }
+                    }
+
+                    // Construcción del HTML interno de la tarjeta
+                    card.innerHTML = `
+                        <div class="equipos-row">
+                            <div class="equipo-col">
+                                <img class="logo-team" src="${item.teams.home.logo}" onerror="this.style.display='none'">
+                                <span class="team-name">${item.teams.home.name}</span>
+                            </div>
+                            <div class="vs-text">VS</div>
+                            <div class="equipo-col">
+                                <img class="logo-team" src="${item.teams.away.logo}" onerror="this.style.display='none'">
+                                <span class="team-name">${item.teams.away.name}</span>
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="prob-container">
+                            <div class="bar-wrapper">
+                                <div class="bar-fill home" style="width: ${pLocal}%"></div>
+                                <div class="bar-text"><span>Gana ${item.teams.home.name}</span><span>${pLocal}%</span></div>
+                            </div>
+                            <div class="bar-wrapper">
+                                <div class="bar-fill draw" style="width: ${pEmpate}%"></div>
+                                <div class="bar-text"><span>Empate</span><span>${pEmpate}%</span></div>
+                            </div>
+                            <div class="bar-wrapper">
+                                <div class="bar-fill away" style="width: ${pVisita}%"></div>
+                                <div class="bar-text"><span>Gana ${item.teams.away.name}</span><span>${pVisita}%</span></div>
+                            </div>
+                        </div>
+                        <div class="marcador-box">
+                            🎯 Marcador Probable según Poisson: ${marcadorExacto}
+                        </div>
+                    `;
+
+                    contenedor.appendChild(card);
+                }
+
+            } catch (error) {
+                console.error(error);
+                const loader = document.getElementById("loader");
+                if (loader) loader.remove();
+                contenedor.innerHTML = "<p style='text-align:center; color:#ef4444; padding:20px;'>No se pudo conectar con el servidor en Render. Recuerda que puede tardar hasta 1 minuto en encender por primera vez.</p>";
+            }
+        }
+
+        // Arrancar la app automáticamente al abrir la página
+        window.onload = inicializarPredictor;
+    </script>
+</body>
+</html>
