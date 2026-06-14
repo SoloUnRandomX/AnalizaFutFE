@@ -3,458 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AnalizaFut 🧠 | Predicciones de Fútbol</title>
+    <title>AnalizaFut - Centro de Predicciones</title>
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-home: #10b981; /* Verde */
-            --accent-away: #3b82f6; /* Azul */
-            --accent-draw: #64748b; /* Gris */
-        }
-
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0f1a;
+            color: white;
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
             padding: 20px;
         }
-
-        header {
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
             text-align: center;
+            color: #00ffcc;
+        }
+        /* Estilos de las Pestañas */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            background-color: #2c2c3e;
+            color: white;
+        }
+        /* Contenedor de Partidos */
+        #contenedor-partidos {
             margin-bottom: 30px;
         }
-
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            background: linear-gradient(to right, #3b82f6, #10b981);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        header p {
-            color: var(--text-muted);
-            margin-top: 5px;
-        }
-
-        #contenedor-partidos {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid #334155;
-        }
-
-        .equipos-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .equipo-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 8px;
-        }
-
-        .logo-team {
-            width: 55px;
-            height: 55px;
-            object-fit: contain;
-        }
-
-        .team-name {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .vs-text {
-            font-weight: 700;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            padding: 0 10px;
-        }
-
-        .divider {
-            height: 1px;
-            background-color: #334155;
-            margin: 15px 0;
-        }
-
-        /* Barras de Probabilidad */
-        .prob-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .bar-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #0f172a;
-            border-radius: 8px;
-            position: relative;
-            height: 35px;
-            overflow: hidden;
-            border: 1px solid #1e293b;
-        }
-
-        .bar-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            transition: width 0.6s ease-out;
-            z-index: 1;
-        }
-
-        .bar-fill.home { background-color: rgba(16, 185, 129, 0.25); border-left: 4px solid var(--accent-home); }
-        .bar-fill.draw { background-color: rgba(100, 116, 139, 0.25); border-left: 4px solid var(--accent-draw); }
-        .bar-fill.away { background-color: rgba(59, 130, 246, 0.25); border-left: 4px solid var(--accent-away); }
-
-        .bar-text {
-            position: relative;
-            z-index: 2;
-            padding: 0 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .marcador-box {
-            text-align: center;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px dashed var(--accent-away);
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-top: 15px;
-            color: #60a5fa;
-        }
-
-        /* Animación de carga */
-        .loader {
-            border: 4px solid #1e293b;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 40px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* ==========================================================================
-           NUEVOS ESTILOS: MINI CHATBOT FUTBOLERO INTERACTIVO
-           ========================================================================== */
-        .chat-flotante {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #3b82f6, #10b981);
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-            z-index: 1000;
-            transition: transform 0.2s ease;
-        }
-
-        .chat-flotante:hover {
-            transform: scale(1.05);
-        }
-
-        .chat-ventana {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            width: 350px;
-            height: 450px;
-            background-color: var(--card-bg);
-            border: 1px solid #334155;
-            border-radius: 16px;
-            display: none; 
-            flex-direction: column;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            z-index: 1000;
-            overflow: hidden;
-        }
-
-        .chat-header {
-            background: linear-gradient(to right, #3b82f6, #10b981);
-            padding: 12px 15px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-mensajes {
-            flex: 1;
+        .partido-card {
+            background: #1e1e2f;
+            border: 1px solid #333;
             padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            font-size: 0.85rem;
-            background-color: #0f172a;
-        }
-
-        .msg {
-            padding: 10px 14px;
-            border-radius: 12px;
-            max-width: 80%;
-            line-height: 1.4;
-            word-wrap: break-word;
-        }
-
-        .msg.bot {
-            background-color: #1e293b;
-            color: var(--text-main);
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-            border: 1px solid #334155;
-        }
-
-        .msg.user {
-            background-color: #3b82f6;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
-
-        .chat-input-area {
-            display: flex;
-            padding: 10px;
-            background: var(--card-bg);
-            border-top: 1px solid #334155;
-            gap: 6px;
-        }
-
-        .chat-input-area input {
-            flex: 1;
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: white;
-            padding: 10px;
             border-radius: 8px;
-            outline: none;
-            font-size: 0.85rem;
-        }
-
-        .chat-input-area input:focus {
-            border-color: #3b82f6;
-        }
-
-        .chat-input-area button {
-            background: #10b981;
-            border: none;
-            color: white;
-            padding: 0 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        .chat-input-area button:hover {
-            background: #0d9488;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>AnalizaFut 🧠</h1>
-        <p>Predicciones matemáticas por Distribución de Poisson</p>
-    </header>
-
-    <main id="contenedor-partidos">
-        <div id="loader" class="loader"></div>
-    </main>
-
-    <div class="chat-flotante" onclick="toggleChat()">⚽</div>
-
-    <div class="chat-ventana" id="chatVentana">
-        <div class="chat-header">
-            <span>AnalizaBot 🧠⚽</span>
-            <span style="cursor:pointer; font-size: 1.2rem;" onclick="toggleChat()">×</span>
-        </div>
-        <div class="chat-mensajes" id="chatMensajes">
-            <div class="msg bot">¡Hola! Soy tu asistente de AnalizaFut. ¿Qué partido quieres revisar o analizar hoy mediante la Distribución de Poisson? 📊</div>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" placeholder="Pregúntame sobre fechas o estadísticas..." onkeypress="evaluarEnter(event)">
-            <button onclick="enviarMensaje()">➡️</button>
-        </div>
+<div class="container">
+    <h1>AnalizaFut ⚽</h1>
+    
+    <div class="tabs-container">
+        <button id="btn-mundial" class="tab-button" onclick="cambiarTab('mundial')" style="background-color: #00ffcc; color: #0f0f1a;">🏆 Mundial 2026</button>
+        <button id="btn-clubes" class="tab-button" onclick="cambiarTab('clubes')">⚽ Ligas Regulares</button>
     </div>
 
-    <script>
-        const URL_NUESTRO_SERVIDOR = "https://analizafut.onrender.com/api/predicciones";
+    <div id="contenedor-partidos"></div>
+</div>
 
-        async function inicializarPredictor() {
-            const contenedor = document.getElementById("contenedor-partidos");
+<script>
+    let tabActual = 'mundial'; // Pestaña por defecto
 
-            try {
-                const response = await fetch(URL_NUESTRO_SERVIDOR);
+    async function cargarCartelera() {
+        const contenedor = document.getElementById('contenedor-partidos');
+        contenedor.innerHTML = '<p style="color: white; text-align: center;">Buscando partidos en los servidores centrales...</p>';
 
-                if (response.status === 202) {
-                    const aviso = await response.json();
-                    contenedor.innerHTML = `<p style='text-align:center; color:#ff9800; padding:20px; font-weight:600;'>${aviso.mensaje}</p>`;
-                    return;
-                }
-
-                const respuestaBackend = await response.json();
-                const partidosMapeados = respuestaBackend.partidos || [];
-
-                const loader = document.getElementById("loader");
-                if (loader) loader.remove();
-
-                if (partidosMapeados.length === 0) {
-                    contenedor.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>No hay partidos del mundial agendados para hoy.</p>";
-                    return;
-                }
-
-                for (let item of partidosMapeados) {
-                    const card = document.createElement("div");
-                    card.className = "card";
-
-                    let pLocalStr = "33%", pEmpateStr = "34%", pVisitaStr = "33%";
-                    let marcadorExacto = "No disponible";
-
-                    if (item.predictionData && item.predictionData.predictions) {
-                        const pred = item.predictionData.predictions;
-                        
-                        pLocalStr = pred.percent.home || "33%";
-                        pEmpateStr = pred.percent.draw || "34%";
-                        pVisitaStr = pred.percent.away || "33%";
-                        marcadorExacto = pred.correct_score || "No disponible";
-                    }
-
-                    card.innerHTML = `
-                        <div class="equipos-row">
-                            <div class="equipo-col">
-                                <img class="logo-team" src="${item.teams.home.logo}" onerror="this.style.display='none'">
-                                <span class="team-name">${item.teams.home.name}</span>
-                            </div>
-                            <div class="vs-text">VS</div>
-                            <div class="equipo-col">
-                                <img class="logo-team" src="${item.teams.away.logo}" onerror="this.style.display='none'">
-                                <span class="team-name">${item.teams.away.name}</span>
-                            </div>
-                        </div>
-                        <div class="divider"></div>
-                        <div class="prob-container">
-                            <div class="bar-wrapper">
-                                <div class="bar-fill home" style="width: ${pLocalStr}"></div>
-                                <div class="bar-text"><span>Gana ${item.teams.home.name}</span><span>${pLocalStr}</span></div>
-                            </div>
-                            <div class="bar-wrapper">
-                                <div class="bar-fill draw" style="width: ${pEmpateStr}"></div>
-                                <div class="bar-text"><span>Empate</span><span>${pEmpateStr}</span></div>
-                            </div>
-                            <div class="bar-wrapper">
-                                <div class="bar-fill away" style="width: ${pVisitaStr}"></div>
-                                <div class="bar-text"><span>Gana ${item.teams.away.name}</span><span>${pVisitaStr}</span></div>
-                            </div>
-                        </div>
-                        <div class="marcador-box">
-                            🎯 Marcador Probable según Poisson: ${marcadorExacto}
-                        </div>
-                    `;
-
-                    contenedor.appendChild(card);
-                }
-
-            } catch (error) {
-                console.error(error);
-                const loader = document.getElementById("loader");
-                if (loader) loader.remove();
-                contenedor.innerHTML = "<p style='text-align:center; color:#ef4444; padding:20px;'>No se pudo conectar con el servidor en Render. Recuerda que puede tardar hasta 1 minuto en encender por primera vez.</p>";
+        try {
+            // Petición dinámica según la pestaña activa
+            const respuesta = await fetch(`https://analizafut.onrender.com/api/predicciones/${tabActual}`);
+            const datos = await respuesta.json();
+            
+            contenedor.innerHTML = ''; // Limpiar el mensaje de carga
+            
+            if (!datos.partidos || datos.partidos.length === 0) {
+                contenedor.innerHTML = '<p style="color: #ccc; text-align: center;">No hay partidos programados para hoy en esta sección.</p>';
+                return;
             }
-        }
 
-        // ==========================================================================
-        // FUNCIONES LÓGICAS DEL CHATBOT FLOTANTE
-        // ==========================================================================
-        function toggleChat() {
-            const chat = document.getElementById("chatVentana");
-            chat.style.display = (chat.style.display === "flex") ? "none" : "flex";
-        }
-
-        function evaluarEnter(evento) {
-            if (evento.key === "Enter") {
-                enviarMensaje();
-            }
-        }
-
-        async function enviarMensaje() {
-            const input = document.getElementById("chatInput");
-            const contenedor = document.getElementById("chatMensajes");
-            const texto = input.value.trim();
-            if (!texto) return;
-
-            // Inyectar el bloque del usuario en la pantalla
-            contenedor.innerHTML += `<div class="msg user">${texto}</div>`;
-            input.value = "";
-            contenedor.scrollTop = contenedor.scrollHeight;
-
-            try {
-                // Petición POST a la nueva ruta /api/chat del backend en Render
-                const res = await fetch("https://analizafut.onrender.com/api/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ mensaje: texto })
-                });
-                const data = await res.json();
+            datos.partidos.forEach(partido => {
+                const tarjeta = document.createElement('div');
+                tarjeta.className = 'partido-card';
                 
-                // Inyectar respuesta limpia del servidor
-                contenedor.innerHTML += `<div class="msg bot">${data.respuesta}</div>`;
-                contenedor.scrollTop = contenedor.scrollHeight;
-            } catch (e) {
-                contenedor.innerHTML += `<div class="msg bot" style="color:#ef4444; border-color:#ef4444;">No se pudo conectar con el asistente de chat en Render.</div>`;
-                contenedor.scrollTop = contenedor.scrollHeight;
-            }
-        }
+                // Detectar si el partido ya finalizó según los datos de tu backend blindado
+                const esFinalizado = partido.fixture.status === "Match Finished" || partido.predictionData.correct_score === "Finalizado";
+                
+                const marcadorHtml = esFinalizado 
+                    ? `<div style="color: #ffcc00; font-weight: bold; font-size: 20px; margin: 10px 0;">Resultado Real: ${partido.predictionData.resultadoReal}</div>`
+                    : `<div style="color: #00ffcc; font-weight: bold; margin: 10px 0;">Predicción: ${partido.predictionData.predictions.correct_score}</div>`;
 
-        window.onload = inicializarPredictor;
-    </script>
+                tarjeta.innerHTML = `
+                    <div style="font-size: 11px; color: #888; text-align: center; margin-bottom: 8px;">Estado: ${partido.fixture.status}</div>
+                    <div style="display: flex; justify-content: space-around; align-items: center;">
+                        <div style="text-align: center; width: 42%;">
+                            <img src="${partido.teams.home.logo}" alt="${partido.teams.home.name}" style="width: 35px; height: auto; error: this.src='https://via.placeholder.com/40';"><br>
+                            <strong style="font-size: 14px;">${partido.teams.home.name}</strong>
+                            <div style="font-size: 12px; color: #aaa; margin-top: 4px;">Gana: ${partido.predictionData.predictions.percent.home}</div>
+                        </div>
+                        <div style="font-weight: bold; font-size: 16px; color: #666;">VS</div>
+                        <div style="text-align: center; width: 42%;">
+                            <img src="${partido.teams.away.logo}" alt="${partido.teams.away.name}" style="width: 35px; height: auto; error: this.src='https://via.placeholder.com/40';"><br>
+                            <strong style="font-size: 14px;">${partido.teams.away.name}</strong>
+                            <div style="font-size: 12px; color: #aaa; margin-top: 4px;">Gana: ${partido.predictionData.predictions.percent.away}</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 12px; border-top: 1px solid #2a2a3d; padding-top: 8px;">
+                        ${marcadorHtml}
+                        <div style="font-size: 11px; color: #666;">Probabilidad de Empate: ${partido.predictionData.predictions.percent.draw}</div>
+                    </div>
+                `;
+                contenedor.appendChild(tarjeta);
+            });
+
+        } catch (error) {
+            contenedor.innerHTML = '<p style="color: #ff4d4d; text-align: center;">Error al conectar con la cartelera automatizada.</p>';
+        }
+    }
+
+    function cambiarTab(tipo) {
+        tabActual = tipo;
+        
+        // Resetear estilos de botones
+        document.getElementById('btn-mundial').style.backgroundColor = '#2c2c3e';
+        document.getElementById('btn-mundial').style.color = 'white';
+        document.getElementById('btn-clubes').style.backgroundColor = '#2c2c3e';
+        document.getElementById('btn-clubes').style.color = 'white';
+        
+        // Activar el seleccionado
+        const btnActivo = tipo === 'mundial' ? document.getElementById('btn-mundial') : document.getElementById('btn-clubes');
+        if (btnActivo) {
+            btnActivo.style.backgroundColor = '#00ffcc';
+            btnActivo.style.color = '#0f0f1a';
+        }
+        
+        cargarCartelera();
+    }
+
+    // Carga inicial al abrir la app
+    document.addEventListener('DOMContentLoaded', cargarCartelera);
+</script>
 </body>
 </html>
