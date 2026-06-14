@@ -16,7 +16,7 @@
         .bar-bg { flex-grow: 1; height: 8px; background: #0f172a; margin: 0 10px; border-radius: 4px; overflow: hidden; }
         .bar-fill { height: 100%; background: #3b82f6; }
         
-        .marcador-live { text-align: center; font-size: 1.2rem; font-weight: bold; color: #ef4444; margin-bottom: 10px; padding: 5px; border: 1px solid #ef4444; border-radius: 6px; }
+        .live-tag { text-align: center; font-size: 1.1rem; font-weight: bold; color: #ef4444; margin-bottom: 10px; padding: 5px; border: 2px solid #ef4444; border-radius: 6px; }
         .prediction-summary { text-align: center; margin-top: 10px; font-weight: bold; color: #fbbf24; font-size: 0.9rem; }
         .logo-team { width: 40px; height: 40px; object-fit: contain; }
     </style>
@@ -27,7 +27,7 @@
         <button class="tab-btn" onclick="iniciarApp('WC')">Selecciones 🌍</button>
         <button class="tab-btn" onclick="iniciarApp('CL')">Clubes 🏆</button>
     </div>
-    <div id="contenedor">Selecciona una categoría para empezar...</div>
+    <div id="contenedor">Selecciona una categoría...</div>
 
     <script>
         const API_URL = "https://analizafut.onrender.com/api/predicciones";
@@ -55,33 +55,34 @@
                     const card = document.createElement("div");
                     card.className = "card";
                     
-                    // Lógica de Marcador
+                    // 1. HEADER: Marcador o estado del partido
                     let header = "";
                     if (m.status === 'FINISHED') {
-                        header = `<div style="text-align:center; color:#10b981; font-weight:bold;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
+                        header = `<div style="text-align:center; color:#10b981; font-weight:bold; margin-bottom:10px;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
                     } else if (m.status === 'IN_PLAY' || m.status === 'PAUSED') {
-                        header = `<div class="marcador-live">🔴 En vivo: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
+                        header = `<div class="live-tag">⏱️ En juego: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
                     }
 
-                    // Lógica de Predicción
-                    const p = m.prediccion;
-                    let ganador = "Empate";
-                    if (p.percent.home > p.percent.away && p.percent.home > p.percent.draw) ganador = m.teams.home.name;
-                    else if (p.percent.away > p.percent.home && p.percent.away > p.percent.draw) ganador = m.teams.away.name;
+                    // 2. PREDICCIONES: Solo si NO ha terminado
+                    let probHTML = "";
+                    if (m.status !== 'FINISHED') {
+                        const p = m.prediccion;
+                        let ganador = "Empate";
+                        if (p.percent.home > p.percent.away && p.percent.home > p.percent.draw) ganador = m.teams.home.name;
+                        else if (p.percent.away > p.percent.home && p.percent.away > p.percent.draw) ganador = m.teams.away.name;
 
-                    const probHTML = p ? `
-                        <div class="prediction-summary">
-                            🎯 Predicción: ${p.score} | Favorito: ${ganador}
-                        </div>
-                        <div class="bar-container">
-                            <div class="bar-row"><span>${m.teams.home.name}</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.home}%"></div></div><span>${p.percent.home}%</span></div>
-                            <div class="bar-row"><span>Empate</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.draw}%"></div></div><span>${p.percent.draw}%</span></div>
-                            <div class="bar-row"><span>${m.teams.away.name}</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.away}%"></div></div><span>${p.percent.away}%</span></div>
-                        </div>` : "";
+                        probHTML = `
+                            <div class="prediction-summary">🎯 Predicción: ${p.score} | Favorito: ${ganador}</div>
+                            <div class="bar-container">
+                                <div class="bar-row"><span>${m.teams.home.name}</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.home}%"></div></div><span>${p.percent.home}%</span></div>
+                                <div class="bar-row"><span>Empate</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.draw}%"></div></div><span>${p.percent.draw}%</span></div>
+                                <div class="bar-row"><span>${m.teams.away.name}</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.away}%"></div></div><span>${p.percent.away}%</span></div>
+                            </div>`;
+                    }
 
                     card.innerHTML = `
                         ${header}
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div style="text-align:center"><img class="logo-team" src="${m.teams.home.crest}" onerror="this.style.display='none'"><br>${m.teams.home.name}</div>
                             <div style="font-weight:bold">VS</div>
                             <div style="text-align:center"><img class="logo-team" src="${m.teams.away.crest}" onerror="this.style.display='none'"><br>${m.teams.away.name}</div>
