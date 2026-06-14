@@ -14,16 +14,15 @@
         .team-box { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; text-align: center; }
         .logo-team { width: 40px; height: 40px; object-fit: contain; }
         .marcador { text-align: center; margin-top: 10px; font-weight: bold; color: #60a5fa; padding: 8px; border: 1px dashed #60a5fa; border-radius: 6px; }
+        .live { color: #ef4444 !important; border-color: #ef4444 !important; border-style: solid !important; }
     </style>
 </head>
 <body>
     <h1>AnalizaFut 🧠</h1>
-    
     <div class="tabs">
         <button class="tab-btn" onclick="cargar('WC')">Selecciones 🌍</button>
         <button class="tab-btn" onclick="cargar('CL')">Clubes 🏆</button>
     </div>
-
     <div id="contenedor">Haz clic en una categoría...</div>
 
     <script>
@@ -36,17 +35,26 @@
             try {
                 const res = await fetch(`${API_URL}?comp=${compCode}`);
                 const data = await res.json();
-                cont.innerHTML = ""; // Esto limpia la pantalla antes de dibujar lo nuevo
+                
+                // FILTRO: Solo partidos de HOY (ajustado a tu hora local)
+                const hoy = new Date().toDateString();
+                const filtrados = data.filter(m => new Date(m.utcDate).toDateString() === hoy);
+                
+                cont.innerHTML = filtrados.length === 0 ? "No hay partidos hoy." : "";
 
-                data.forEach(m => {
+                filtrados.forEach(m => {
                     const card = document.createElement("div");
                     card.className = "card";
                     
-                    const isFinished = m.status === 'FINISHED';
-                    
-                    let body = isFinished 
-                        ? `<div class="marcador" style="border-color:#10b981; color:#10b981;">🏁 Finalizado: ${m.resultadoReal}</div>`
-                        : `<div class="marcador">🎯 Marcador: ${m.prediccion.score} | Gana: ${m.prediccion.percent.home}%</div>`;
+                    // Lógica de visualización por estado
+                    let cuerpo = "";
+                    if (m.status === 'FINISHED') {
+                        cuerpo = `<div class="marcador" style="border-color:#10b981; color:#10b981;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
+                    } else if (m.status === 'IN_PLAY' || m.status === 'PAUSED') {
+                        cuerpo = `<div class="marcador live">🔴 En Vivo: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
+                    } else {
+                        cuerpo = `<div class="marcador">🎯 Pronóstico: ${m.prediccion.score} | Gana local: ${m.prediccion.percent.home}%</div>`;
+                    }
 
                     card.innerHTML = `
                         <div class="equipos-row">
@@ -54,13 +62,10 @@
                             <div style="font-weight:bold; color:#64748b">VS</div>
                             <div class="team-box"><img class="logo-team" src="${m.teams.away.crest}" onerror="this.style.display='none'"><span>${m.teams.away.name}</span></div>
                         </div>
-                        ${body}`;
+                        ${cuerpo}`;
                     cont.appendChild(card);
                 });
-            } catch (e) { 
-                cont.innerHTML = "Error al cargar los datos. ¿La API está activa?"; 
-                console.error(e);
-            }
+            } catch (e) { cont.innerHTML = "Error al cargar."; }
         }
     </script>
 </body>
