@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -11,13 +11,13 @@
         .tab-btn:hover { background: #3b82f6; }
         .card { background-color: var(--card-bg); width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
         
-        /* Estilos de barras */
-        .bar-container { margin-top: 10px; }
+        .bar-container { margin-top: 15px; border-top: 1px solid #334155; padding-top: 10px; }
         .bar-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; margin: 5px 0; }
         .bar-bg { flex-grow: 1; height: 8px; background: #0f172a; margin: 0 10px; border-radius: 4px; overflow: hidden; }
         .bar-fill { height: 100%; background: #3b82f6; }
         
         .marcador-live { text-align: center; font-size: 1.2rem; font-weight: bold; color: #ef4444; margin-bottom: 10px; padding: 5px; border: 1px solid #ef4444; border-radius: 6px; }
+        .prediction-summary { text-align: center; margin-top: 10px; font-weight: bold; color: #fbbf24; font-size: 0.9rem; }
         .logo-team { width: 40px; height: 40px; object-fit: contain; }
     </style>
 </head>
@@ -33,11 +33,10 @@
         const API_URL = "https://analizafut.onrender.com/api/predicciones";
         let intervalId = null;
 
-        // Función principal para iniciar el ciclo
         function iniciarApp(compCode) {
-            if (intervalId) clearInterval(intervalId); // Limpiar refresco anterior
-            cargar(compCode); // Cargar inmediatamente
-            intervalId = setInterval(() => cargar(compCode), 10000); // 10s refresco
+            if (intervalId) clearInterval(intervalId);
+            cargar(compCode);
+            intervalId = setInterval(() => cargar(compCode), 10000);
         }
 
         async function cargar(compCode) {
@@ -46,7 +45,6 @@
                 const data = await res.json();
                 const cont = document.getElementById("contenedor");
                 
-                // Filtro de hoy
                 const hoy = new Date().toDateString();
                 const filtrados = data.filter(m => new Date(m.utcDate).toDateString() === hoy);
                 
@@ -57,17 +55,24 @@
                     const card = document.createElement("div");
                     card.className = "card";
                     
-                    // Lógica de Marcador/Estado
+                    // Lógica de Marcador
                     let header = "";
                     if (m.status === 'FINISHED') {
                         header = `<div style="text-align:center; color:#10b981; font-weight:bold;">🏁 Final: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
                     } else if (m.status === 'IN_PLAY' || m.status === 'PAUSED') {
-                        header = `<div class="marcador-live">🔴 ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
+                        header = `<div class="marcador-live">🔴 En vivo: ${m.score.fullTime.home} - ${m.score.fullTime.away}</div>`;
                     }
 
-                    // Barras de probabilidad
+                    // Lógica de Predicción
                     const p = m.prediccion;
+                    let ganador = "Empate";
+                    if (p.percent.home > p.percent.away && p.percent.home > p.percent.draw) ganador = m.teams.home.name;
+                    else if (p.percent.away > p.percent.home && p.percent.away > p.percent.draw) ganador = m.teams.away.name;
+
                     const probHTML = p ? `
+                        <div class="prediction-summary">
+                            🎯 Predicción: ${p.score} | Favorito: ${ganador}
+                        </div>
                         <div class="bar-container">
                             <div class="bar-row"><span>${m.teams.home.name}</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.home}%"></div></div><span>${p.percent.home}%</span></div>
                             <div class="bar-row"><span>Empate</span><div class="bar-bg"><div class="bar-fill" style="width:${p.percent.draw}%"></div></div><span>${p.percent.draw}%</span></div>
@@ -84,7 +89,7 @@
                         ${probHTML}`;
                     cont.appendChild(card);
                 });
-            } catch (e) { console.error("Error actualizando datos:", e); }
+            } catch (e) { console.error("Error:", e); }
         }
     </script>
 </body>
