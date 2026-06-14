@@ -3,286 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AnalizaFut 🧠 | Predicciones de Fútbol</title>
+    <title>AnalizaFut - Cartelera de Predicciones</title>
     <style>
+        /* ==========================================================================
+           TU DISEÑO Y ESTILOS CSS ORIGINALES (Mantén los tuyos tal cual te gustan)
+           ========================================================================== */
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-home: #10b981; /* Verde */
-            --accent-away: #3b82f6; /* Azul */
-            --accent-draw: #64748b; /* Gris */
+            --bg-dark: #0b0f19;
+            --bg-card: #141b2d;
+            --accent-green: #00ff88;
+            --accent-blue: #00bfff;
+            --accent-red: #ff453a;
+            --text-light: #ffffff;
         }
 
         body {
+            font-family: sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            padding: 15px;
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
         }
 
-        header {
+        .contenedor {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .titulo-app {
             text-align: center;
-            margin-bottom: 30px;
+            color: var(--accent-green);
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            margin-bottom: 20px;
         }
 
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            background: linear-gradient(to right, #3b82f6, #10b981);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* Tus tarjetas estáticas originales */
+        .partido-card {
+            background-color: var(--bg-card);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #222d4a;
         }
 
-        header p {
-            color: var(--text-muted);
-            margin-top: 5px;
+        .cabecera-tarjeta {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 10px;
+            text-align: center;
         }
 
-        #contenedor-partidos {
-            width: 100%;
-            max-width: 600px;
+        .bloque-equipos {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid #334155;
-        }
-
-        .equipos-row {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 15px;
         }
 
-        .equipo-col {
-            flex: 1;
+        .equipo-caja {
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 40%;
             text-align: center;
+        }
+
+        .equipo-caja img {
+            width: 40px;
+            height: auto;
+            margin-bottom: 5px;
+            background-color: #222d4a;
+            border-radius: 4px;
+        }
+
+        .vs-caja {
+            width: 20%;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .marcador {
+            display: block;
+            font-size: 1.1rem;
+            color: var(--accent-green);
+            margin-top: 4px;
+        }
+
+        /* Tus barras de Poisson */
+        .contenedor-barras {
+            display: flex;
+            flex-direction: column;
             gap: 8px;
         }
 
-        .logo-team {
-            width: 55px;
-            height: 55px;
-            object-fit: contain;
-        }
-
-        .team-name {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .vs-text {
-            font-weight: 700;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            padding: 0 10px;
-        }
-
-        .divider {
-            height: 1px;
-            background-color: #334155;
-            margin: 15px 0;
-        }
-
-        /* Barras de Probabilidad */
-        .prob-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .bar-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #0f172a;
-            border-radius: 8px;
+        .barra-fila {
+            background-color: #0b0f19;
+            height: 20px;
+            border-radius: 4px;
             position: relative;
-            height: 35px;
             overflow: hidden;
-            border: 1px solid #1e293b;
         }
 
-        .bar-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .barra {
             height: 100%;
+            width: 0%; /* El JS se encargará de estirarla */
             transition: width 0.6s ease-out;
-            z-index: 1;
         }
 
-        .bar-fill.home { background-color: rgba(16, 185, 129, 0.25); border-left: 4px solid var(--accent-home); }
-        .bar-fill.draw { background-color: rgba(100, 116, 139, 0.25); border-left: 4px solid var(--accent-draw); }
-        .bar-fill.away { background-color: rgba(59, 130, 246, 0.25); border-left: 4px solid var(--accent-away); }
+        .barra-local { background-color: rgba(0, 255, 136, 0.3); border-right: 3px solid var(--accent-green); }
+        .barra-empate { background-color: rgba(0, 191, 255, 0.3); border-right: 3px solid var(--accent-blue); }
+        .barra-visita { background-color: rgba(255, 69, 58, 0.3); border-right: 3px solid var(--accent-red); }
 
-        .bar-text {
-            position: relative;
-            z-index: 2;
-            padding: 0 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
+        .texto-barra {
+            position: absolute;
             width: 100%;
+            left: 0;
+            top: 0;
+            height: 100%;
             display: flex;
             justify-content: space-between;
-        }
-
-        .marcador-box {
-            text-align: center;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px dashed var(--accent-away);
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-top: 15px;
-            color: #60a5fa;
-        }
-
-        /* Animación de carga */
-        .loader {
-            border: 4px solid #1e293b;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 40px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            align-items: center;
+            box-sizing: border-box;
+            padding: 0 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>AnalizaFut 🧠</h1>
-        <p>Predicciones matemáticas por Distribución de Poisson</p>
-    </header>
+    <div class="contenedor">
+        <h1 class="titulo-app">AnalizaFut - Predicciones</h1>
 
-    <main id="contenedor-partidos">
-        <div id="loader" class="loader"></div>
-    </main>
+        <div id="contenedor-partidos">
+            
+            <div class="partido-card">
+                <div class="cabecera-tarjeta">🏆 COPA DEL MUNDO</div>
+                <div class="bloque-equipos">
+                    <div class="equipo-caja">
+                        <img src="" class="img-local">
+                        <span class="nombre-local">Cargando...</span>
+                    </div>
+                    <div class="vs-caja">
+                        VS
+                        <span class="marcador">-</span>
+                    </div>
+                    <div class="equipo-caja">
+                        <img src="" class="img-visita">
+                        <span class="nombre-visita">Cargando...</span>
+                    </div>
+                </div>
+                <div class="contenedor-barras">
+                    <div class="barra-fila"><div class="barra barra-local"></div><div class="texto-barra"><span>Victoria Local</span><span class="texto-local">0%</span></div></div>
+                    <div class="barra-fila"><div class="barra barra-empate"></div><div class="texto-barra"><span>Empate</span><span class="texto-empate">0%</span></div></div>
+                    <div class="barra-fila"><div class="barra barra-visita"></div><div class="texto-barra"><span>Victoria Visitante</span><span class="texto-visita">0%</span></div></div>
+                </div>
+            </div>
+
+            <div class="partido-card">
+                <div class="cabecera-tarjeta">🏆 COPA DEL MUNDO</div>
+                <div class="bloque-equipos">
+                    <div class="equipo-caja">
+                        <img src="" class="img-local">
+                        <span class="nombre-local">Cargando...</span>
+                    </div>
+                    <div class="vs-caja">
+                        VS
+                        <span class="marcador">-</span>
+                    </div>
+                    <div class="equipo-caja">
+                        <img src="" class="img-visita">
+                        <span class="nombre-visita">Cargando...</span>
+                    </div>
+                </div>
+                <div class="contenedor-barras">
+                    <div class="barra-fila"><div class="barra barra-local"></div><div class="texto-barra"><span>Victoria Local</span><span class="texto-local">0%</span></div></div>
+                    <div class="barra-fila"><div class="barra barra-empate"></div><div class="texto-barra"><span>Empate</span><span class="texto-empate">0%</span></div></div>
+                    <div class="barra-fila"><div class="barra barra-visita"></div><div class="texto-barra"><span>Victoria Visitante</span><span class="texto-visita">0%</span></div></div>
+                </div>
+            </div>
+
+            <div class="partido-card">
+                <div class="cabecera-tarjeta">🏆 COPA DEL MUNDO</div>
+                <div class="bloque-equipos">
+                    <div class="equipo-caja">
+                        <img src="" class="img-local">
+                        <span class="nombre-local">Cargando...</span>
+                    </div>
+                    <div class="vs-caja">
+                        VS
+                        <span class="marcador">-</span>
+                    </div>
+                    <div class="equipo-caja">
+                        <img src="" class="img-visita">
+                        <span class="nombre-visita">Cargando...</span>
+                    </div>
+                </div>
+                <div class="contenedor-barras">
+                    <div class="barra-fila"><div class="barra barra-local"></div><div class="texto-barra"><span>Victoria Local</span><span class="texto-local">0%</span></div></div>
+                    <div class="barra-fila"><div class="barra barra-empate"></div><div class="texto-barra"><span>Empate</span><span class="texto-empate">0%</span></div></div>
+                    <div class="barra-fila"><div class="barra barra-visita"></div><div class="texto-barra"><span>Victoria Visitante</span><span class="texto-visita">0%</span></div></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
     <script>
-        // Tu URL de Render ya configurada con el endpoint correcto
         const URL_NUESTRO_SERVIDOR = "https://analizafut.onrender.com/api/predicciones";
 
-        async function inicializarPredictor() {
-            const contenedor = document.getElementById("contenedor-partidos");
-
+        async function obtenerPredicciones() {
             try {
-                const response = await fetch(URL_NUESTRO_SERVIDOR);
+                const respuesta = await fetch(URL_NUESTRO_SERVIDOR);
+                if (!respuesta.ok) throw new Error("Error de red en Render");
+                
+                const datos = await respuesta.json();
 
-                // Si el servidor de Render está despertando o descargando datos de la API de fútbol
-                if (response.status === 202) {
-                    const aviso = await response.json();
-                    contenedor.innerHTML = `<p style='text-align:center; color:#ff9800; padding:20px; font-weight:600;'>${aviso.mensaje}</p>`;
+                if (!datos.partidos || datos.partidos.length === 0) {
+                    console.log("No hay partidos programados para hoy.");
                     return;
                 }
 
-                const respuestaBackend = await response.json();
-                const partidosMapeados = respuestaBackend.data || [];
+                // Capturamos el bloque de tarjetas que armaste arriba
+                const tarjetasHTML = document.querySelectorAll('.partido-card');
 
-                // Quitamos el loader animado
-                const loader = document.getElementById("loader");
-                if (loader) loader.remove();
+                datos.partidos.forEach((partido, indice) => {
+                    // Evitamos desbordamiento si el servidor manda más partidos de las cajas que creamos
+                    if (!tarjetasHTML[indice]) return;
 
-                if (partidosMapeados.length === 0) {
-                    contenedor.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>No hay partidos del mundial agendados para hoy.</p>";
-                    return;
-                }
+                    const tarjeta = tarjetasHTML[indice];
 
-                // Pintamos cada uno de los partidos guardados en el caché de Render
-                for (let item of partidosMapeados) {
-                    const card = document.createElement("div");
-                    card.className = "card";
+                    // 1. Desmenuzamos el JSON usando la ruta exacta de las DevTools
+                    const localNombre = partido.teams.home.name;
+                    const visitaNombre = partido.teams.away.name;
+                    const localBandera = partido.teams.home.logo;
+                    const visitaBandera = partido.teams.away.logo;
+                    
+                    const porcLocal = partido.predictionData.predictions.percent.home;
+                    const porcEmpate = partido.predictionData.predictions.percent.draw;
+                    const porcVisita = partido.predictionData.predictions.percent.away;
+                    const marcadorEstimado = partido.predictionData.predictions.correct_score;
 
-                    // Extraer porcentajes reales de la API (o usar el generador interno si fallan)
-                    let pLocal = 33, pEmpate = 34, pVisita = 33;
-                    let marcadorExacto = "No disponible";
+                    // 2. Inyección de textos (Busca tus clases de CSS y mete los datos)
+                    if(tarjeta.querySelector('.nombre-local')) tarjeta.querySelector('.nombre-local').innerText = localNombre;
+                    if(tarjeta.querySelector('.nombre-visita')) tarjeta.querySelector('.nombre-visita').innerText = visitaNombre;
+                    if(tarjeta.querySelector('.marcador')) tarjeta.querySelector('.marcador').innerText = marcadorEstimado;
 
-                    if (item.predictionData && item.predictionData.predictions) {
-                        const pred = item.predictionData.predictions;
-                        pLocal = parseFloat(pred.percent.home) || 33;
-                        pEmpate = parseFloat(pred.percent.draw) || 34;
-                        pVisita = parseFloat(pred.percent.away) || 33;
-
-                        if (pred.correct_score) {
-                            marcadorExacto = pred.correct_score;
-                        } else {
-                            marcadorExacto = `${pred.goals.home || 0} - ${pred.goals.away || 0}`;
-                        }
+                    // 3. Inyección de banderas con escudo anti-imágenes rotas
+                    if(tarjeta.querySelector('.img-local')) {
+                        tarjeta.querySelector('.img-local').src = localBandera;
+                        tarjeta.querySelector('.img-local').setAttribute('onerror', "this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/53/53283.png';");
+                    }
+                    if(tarjeta.querySelector('.img-visita')) {
+                        tarjeta.querySelector('.img-visita').src = visitaBandera;
+                        tarjeta.querySelector('.img-visita').setAttribute('onerror', "this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/53/53283.png';");
                     }
 
-                    // Construcción del HTML interno de la tarjeta
-                    card.innerHTML = `
-                        <div class="equipos-row">
-                            <div class="equipo-col">
-                                <img class="logo-team" src="${item.teams.home.logo}" onerror="this.style.display='none'">
-                                <span class="team-name">${item.teams.home.name}</span>
-                            </div>
-                            <div class="vs-text">VS</div>
-                            <div class="equipo-col">
-                                <img class="logo-team" src="${item.teams.away.logo}" onerror="this.style.display='none'">
-                                <span class="team-name">${item.teams.away.name}</span>
-                            </div>
-                        </div>
-                        <div class="divider"></div>
-                        <div class="prob-container">
-                            <div class="bar-wrapper">
-                                <div class="bar-fill home" style="width: ${pLocal}%"></div>
-                                <div class="bar-text"><span>Gana ${item.teams.home.name}</span><span>${pLocal}%</span></div>
-                            </div>
-                            <div class="bar-wrapper">
-                                <div class="bar-fill draw" style="width: ${pEmpate}%"></div>
-                                <div class="bar-text"><span>Empate</span><span>${pEmpate}%</span></div>
-                            </div>
-                            <div class="bar-wrapper">
-                                <div class="bar-fill away" style="width: ${pVisita}%"></div>
-                                <div class="bar-text"><span>Gana ${item.teams.away.name}</span><span>${pVisita}%</span></div>
-                            </div>
-                        </div>
-                        <div class="marcador-box">
-                            🎯 Marcador Probable según Poisson: ${marcadorExacto}
-                        </div>
-                    `;
+                    // 4. Estiramos los contenedores de tus barras CSS en vivo
+                    if(tarjeta.querySelector('.barra-local')) tarjeta.querySelector('.barra-local').style.width = porcLocal;
+                    if(tarjeta.querySelector('.barra-empate')) tarjeta.querySelector('.barra-empate').style.width = porcEmpate;
+                    if(tarjeta.querySelector('.barra-visita')) tarjeta.querySelector('.barra-visita').style.width = porcVisita;
 
-                    contenedor.appendChild(card);
-                }
+                    // 5. Pintamos el texto de los porcentajes
+                    if(tarjeta.querySelector('.texto-local')) tarjeta.querySelector('.texto-local').innerText = porcLocal;
+                    if(tarjeta.querySelector('.texto-empate')) tarjeta.querySelector('.texto-empate').innerText = porcEmpate;
+                    if(tarjeta.querySelector('.texto-visita')) tarjeta.querySelector('.texto-visita').innerText = porcVisita;
+
+                    console.log(`✅ Sincronizado: ${localNombre} vs ${visitaNombre}`);
+                });
 
             } catch (error) {
-                console.error(error);
-                const loader = document.getElementById("loader");
-                if (loader) loader.remove();
-                contenedor.innerHTML = "<p style='text-align:center; color:#ef4444; padding:20px;'>No se pudo conectar con el servidor en Render. Recuerda que puede tardar hasta 1 minuto en encender por primera vez.</p>";
+                console.error("Error cargando los datos en la interfaz:", error);
             }
         }
 
-        // Arrancar la app automáticamente al abrir la página
-        window.onload = inicializarPredictor;
+        // Lanzar la consulta inmediatamente al levantar el archivo
+        obtenerPredicciones();
     </script>
 </body>
 </html>
