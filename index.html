@@ -173,6 +173,130 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* ==========================================================================
+           NUEVOS ESTILOS: MINI CHATBOT FUTBOLERO INTERACTIVO
+           ========================================================================== */
+        .chat-flotante {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #3b82f6, #10b981);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            z-index: 1000;
+            transition: transform 0.2s ease;
+        }
+
+        .chat-flotante:hover {
+            transform: scale(1.05);
+        }
+
+        .chat-ventana {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background-color: var(--card-bg);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            display: none; 
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(to right, #3b82f6, #10b981);
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-mensajes {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 0.85rem;
+            background-color: #0f172a;
+        }
+
+        .msg {
+            padding: 10px 14px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .msg.bot {
+            background-color: #1e293b;
+            color: var(--text-main);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #334155;
+        }
+
+        .msg.user {
+            background-color: #3b82f6;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            background: var(--card-bg);
+            border-top: 1px solid #334155;
+            gap: 6px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.85rem;
+        }
+
+        .chat-input-area input:focus {
+            border-color: #3b82f6;
+        }
+
+        .chat-input-area button {
+            background: #10b981;
+            border: none;
+            color: white;
+            padding: 0 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .chat-input-area button:hover {
+            background: #0d9488;
+        }
     </style>
 </head>
 <body>
@@ -185,6 +309,22 @@
     <main id="contenedor-partidos">
         <div id="loader" class="loader"></div>
     </main>
+
+    <div class="chat-flotante" onclick="toggleChat()">⚽</div>
+
+    <div class="chat-ventana" id="chatVentana">
+        <div class="chat-header">
+            <span>AnalizaBot 🧠⚽</span>
+            <span style="cursor:pointer; font-size: 1.2rem;" onclick="toggleChat()">×</span>
+        </div>
+        <div class="chat-mensajes" id="chatMensajes">
+            <div class="msg bot">¡Hola! Soy tu asistente de AnalizaFut. ¿Qué partido quieres revisar o analizar hoy mediante la Distribución de Poisson? 📊</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Pregúntame sobre fechas o estadísticas..." onkeypress="evaluarEnter(event)">
+            <button onclick="enviarMensaje()">➡️</button>
+        </div>
+    </div>
 
     <script>
         const URL_NUESTRO_SERVIDOR = "https://analizafut.onrender.com/api/predicciones";
@@ -202,8 +342,6 @@
                 }
 
                 const respuestaBackend = await response.json();
-                
-                // AJUSTE CLAVE 1: Mapear desde .partidos en lugar de .data tal como lo entrega tu servidor
                 const partidosMapeados = respuestaBackend.partidos || [];
 
                 const loader = document.getElementById("loader");
@@ -221,7 +359,6 @@
                     let pLocalStr = "33%", pEmpateStr = "34%", pVisitaStr = "33%";
                     let marcadorExacto = "No disponible";
 
-                    // AJUSTE CLAVE 2: Extraer de forma segura los strings con '%' y pasarlos limpios para los anchos CSS
                     if (item.predictionData && item.predictionData.predictions) {
                         const pred = item.predictionData.predictions;
                         
@@ -231,7 +368,6 @@
                         marcadorExacto = pred.correct_score || "No disponible";
                     }
 
-                    // Construcción dinámica respetando al 100% tus selectores y diseño
                     card.innerHTML = `
                         <div class="equipos-row">
                             <div class="equipo-col">
@@ -272,6 +408,49 @@
                 const loader = document.getElementById("loader");
                 if (loader) loader.remove();
                 contenedor.innerHTML = "<p style='text-align:center; color:#ef4444; padding:20px;'>No se pudo conectar con el servidor en Render. Recuerda que puede tardar hasta 1 minuto en encender por primera vez.</p>";
+            }
+        }
+
+        // ==========================================================================
+        // FUNCIONES LÓGICAS DEL CHATBOT FLOTANTE
+        // ==========================================================================
+        function toggleChat() {
+            const chat = document.getElementById("chatVentana");
+            chat.style.display = (chat.style.display === "flex") ? "none" : "flex";
+        }
+
+        function evaluarEnter(evento) {
+            if (evento.key === "Enter") {
+                enviarMensaje();
+            }
+        }
+
+        async function enviarMensaje() {
+            const input = document.getElementById("chatInput");
+            const contenedor = document.getElementById("chatMensajes");
+            const texto = input.value.trim();
+            if (!texto) return;
+
+            // Inyectar el bloque del usuario en la pantalla
+            contenedor.innerHTML += `<div class="msg user">${texto}</div>`;
+            input.value = "";
+            contenedor.scrollTop = contenedor.scrollHeight;
+
+            try {
+                // Petición POST a la nueva ruta /api/chat del backend en Render
+                const res = await fetch("https://analizafut.onrender.com/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ mensaje: texto })
+                });
+                const data = await res.json();
+                
+                // Inyectar respuesta limpia del servidor
+                contenedor.innerHTML += `<div class="msg bot">${data.respuesta}</div>`;
+                contenedor.scrollTop = contenedor.scrollHeight;
+            } catch (e) {
+                contenedor.innerHTML += `<div class="msg bot" style="color:#ef4444; border-color:#ef4444;">No se pudo conectar con el asistente de chat en Render.</div>`;
+                contenedor.scrollTop = contenedor.scrollHeight;
             }
         }
 
