@@ -2,122 +2,55 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AnalizaFut 🧠 | Predicciones de Fútbol</title>
+    <title>AnalizaFut 🧠</title>
     <style>
-        /* (Tus estilos originales permanecen intactos) */
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-home: #10b981;
-            --accent-away: #3b82f6;
-            --accent-draw: #64748b;
-        }
-
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
-        header { text-align: center; margin-bottom: 30px; }
-        header h1 { margin: 0; font-size: 2.5rem; font-weight: 800; background: linear-gradient(to right, #3b82f6, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        header p { color: var(--text-muted); margin-top: 5px; }
-        #contenedor-partidos { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px; }
-        .card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #334155; }
-        .equipos-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .equipo-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .logo-team { width: 55px; height: 55px; object-fit: contain; }
-        .team-name { font-size: 1rem; font-weight: 600; }
-        .vs-text { font-weight: 700; color: var(--text-muted); padding: 0 10px; }
-        .divider { height: 1px; background-color: #334155; margin: 15px 0; }
-        .prob-container { display: flex; flex-direction: column; gap: 10px; }
-        .bar-wrapper { display: flex; align-items: center; justify-content: space-between; background-color: #0f172a; border-radius: 8px; position: relative; height: 35px; overflow: hidden; border: 1px solid #1e293b; }
-        .bar-fill { position: absolute; top: 0; left: 0; height: 100%; transition: width 0.6s ease-out; z-index: 1; }
-        .bar-fill.home { background-color: rgba(16, 185, 129, 0.25); border-left: 4px solid var(--accent-home); }
-        .bar-fill.draw { background-color: rgba(100, 116, 139, 0.25); border-left: 4px solid var(--accent-draw); }
-        .bar-fill.away { background-color: rgba(59, 130, 246, 0.25); border-left: 4px solid var(--accent-away); }
-        .bar-text { position: relative; z-index: 2; padding: 0 12px; font-size: 0.85rem; font-weight: 600; width: 100%; display: flex; justify-content: space-between; }
-        .marcador-box { text-align: center; background: rgba(59, 130, 246, 0.1); border: 1px dashed var(--accent-away); padding: 8px; border-radius: 8px; font-weight: 700; margin-top: 15px; color: #60a5fa; }
-        .loader { border: 4px solid #1e293b; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 40px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        :root { --bg-color: #0f172a; --card-bg: #1e293b; }
+        body { font-family: sans-serif; background-color: var(--bg-color); color: #f8fafc; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background-color: var(--card-bg); width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
+        .equipos-row { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; }
+        .bar-wrapper { height: 30px; background: #0f172a; margin: 6px 0; border-radius: 5px; overflow: hidden; position: relative; display: flex; align-items: center; }
+        .bar-fill { height: 100%; transition: width 0.6s ease; }
+        .home { background: rgba(16, 185, 129, 0.4); }
+        .draw { background: rgba(100, 116, 139, 0.4); }
+        .away { background: rgba(59, 130, 246, 0.4); }
+        .bar-text { position: absolute; padding: 0 10px; font-size: 0.8rem; width: 100%; display: flex; justify-content: space-between; }
+        .marcador { text-align: center; margin-top: 15px; font-weight: bold; color: #60a5fa; padding: 8px; border: 1px dashed #60a5fa; border-radius: 6px; }
     </style>
 </head>
 <body>
-
-    <header>
-        <h1>AnalizaFut 🧠</h1>
-        <p>Predicciones matemáticas por Distribución de Poisson</p>
-    </header>
-
-    <main id="contenedor-partidos">
-        <div id="loader" class="loader"></div>
-    </main>
+    <h1>AnalizaFut 🧠</h1>
+    <div id="contenedor">Cargando partidos...</div>
 
     <script>
-        const URL_NUESTRO_SERVIDOR = "https://analizafut.onrender.com/api/matches";
+        const API_URL = "https://analizafut.onrender.com/api/predicciones";
 
-        async function inicializarPredictor() {
-            const contenedor = document.getElementById("contenedor-partidos");
-
+        async function cargar() {
             try {
-                const response = await fetch(URL_NUESTRO_SERVIDOR);
-                const respuestaBackend = await response.json();
-                const partidos = respuestaBackend.data || [];
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                const cont = document.getElementById("contenedor");
+                cont.innerHTML = "";
 
-                document.getElementById("loader").remove();
-
-                if (partidos.length === 0) {
-                    contenedor.innerHTML = "<p style='text-align:center; color:gray;'>No hay partidos disponibles.</p>";
-                    return;
-                }
-
-                partidos.forEach(item => {
+                data.forEach(m => {
                     const card = document.createElement("div");
                     card.className = "card";
-
-                    // LÓGICA DE ESTADO
-                    const isFinished = item.resultadoReal !== null;
                     
-                    // Construcción dinámica del contenido
-                    let cuerpoTarjeta = "";
+                    let body = m.resultadoReal 
+                        ? `<div class="marcador" style="border-color:#10b981; color:#10b981;">🏁 Resultado: ${m.resultadoReal}</div>`
+                        : `<div class="bar-wrapper"><div class="bar-fill home" style="width:${m.prediccion.percent.home}%"></div><div class="bar-text"><span>Gana ${m.teams.home}</span><span>${m.prediccion.percent.home}%</span></div></div>
+                           <div class="bar-wrapper"><div class="bar-fill draw" style="width:${m.prediccion.percent.draw}%"></div><div class="bar-text"><span>Empate</span><span>${m.prediccion.percent.draw}%</span></div></div>
+                           <div class="bar-wrapper"><div class="bar-fill away" style="width:${m.prediccion.percent.away}%"></div><div class="bar-text"><span>Gana ${m.teams.away}</span><span>${m.prediccion.percent.away}%</span></div></div>
+                           <div class="marcador">🎯 Marcador Probable: ${m.prediccion.score}</div>`;
 
-                    if (isFinished) {
-                        cuerpoTarjeta = `
-                            <div class="marcador-box" style="border-color: #10b981; color: #10b981;">
-                                🏁 Resultado Final: ${item.resultadoReal}
-                            </div>
-                        `;
-                    } else if (item.predictionData && item.predictionData.predictions) {
-                        const pred = item.predictionData.predictions;
-                        cuerpoTarjeta = `
-                            <div class="prob-container">
-                                <div class="bar-wrapper"><div class="bar-fill home" style="width: ${pred.percent.home}%"></div><div class="bar-text"><span>Gana ${item.teams.home.name}</span><span>${pred.percent.home}%</span></div></div>
-                                <div class="bar-wrapper"><div class="bar-fill draw" style="width: ${pred.percent.draw}%"></div><div class="bar-text"><span>Empate</span><span>${pred.percent.draw}%</span></div></div>
-                                <div class="bar-wrapper"><div class="bar-fill away" style="width: ${pred.percent.away}%"></div><div class="bar-text"><span>Gana ${item.teams.away.name}</span><span>${pred.percent.away}%</span></div></div>
-                            </div>
-                            <div class="marcador-box">🎯 Marcador Probable: ${pred.correct_score}</div>
-                        `;
-                    } else {
-                        cuerpoTarjeta = `<p style="text-align:center; color: var(--text-muted);">Sin predicción disponible.</p>`;
-                    }
-
-                    card.innerHTML = `
-                        <div class="equipos-row">
-                            <div class="equipo-col"><img class="logo-team" src="${item.teams.home.logo}" onerror="this.style.display='none'"><span class="team-name">${item.teams.home.name}</span></div>
-                            <div class="vs-text">VS</div>
-                            <div class="equipo-col"><img class="logo-team" src="${item.teams.away.logo}" onerror="this.style.display='none'"><span class="team-name">${item.teams.away.name}</span></div>
-                        </div>
-                        <div class="divider"></div>
-                        ${cuerpoTarjeta}
-                    `;
-                    contenedor.appendChild(card);
+                    card.innerHTML = `<div class="equipos-row"><span>${m.teams.home}</span><span>VS</span><span>${m.teams.away}</span></div>${body}`;
+                    cont.appendChild(card);
                 });
-
-            } catch (error) {
-                console.error(error);
-                contenedor.innerHTML = "<p style='text-align:center; color:#ef4444;'>Error conectando al servidor. Espera un momento...</p>";
+            } catch (e) { 
+                document.getElementById("contenedor").innerHTML = "Error al conectar al servidor."; 
+                console.error(e);
             }
         }
-
-        window.onload = inicializarPredictor;
+        cargar();
     </script>
 </body>
 </html>
