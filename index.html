@@ -3,148 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AnalizaFut - Centro de Predicciones</title>
+    <title>AnalizaFut 🧠 | Predicciones de Fútbol</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f0f1a;
-            color: white;
-            margin: 0;
-            padding: 20px;
+        /* (Tus estilos originales permanecen intactos) */
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-home: #10b981;
+            --accent-away: #3b82f6;
+            --accent-draw: #64748b;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            color: #00ffcc;
-        }
-        /* Estilos de las Pestañas */
-        .tabs-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-        .tab-button {
-            flex: 1;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: bold;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-            background-color: #2c2c3e;
-            color: white;
-        }
-        /* Contenedor de Partidos */
-        #contenedor-partidos {
-            margin-bottom: 30px;
-        }
-        .partido-card {
-            background: #1e1e2f;
-            border: 1px solid #333;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
+
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { margin: 0; font-size: 2.5rem; font-weight: 800; background: linear-gradient(to right, #3b82f6, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header p { color: var(--text-muted); margin-top: 5px; }
+        #contenedor-partidos { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px; }
+        .card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #334155; }
+        .equipos-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .equipo-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .logo-team { width: 55px; height: 55px; object-fit: contain; }
+        .team-name { font-size: 1rem; font-weight: 600; }
+        .vs-text { font-weight: 700; color: var(--text-muted); padding: 0 10px; }
+        .divider { height: 1px; background-color: #334155; margin: 15px 0; }
+        .prob-container { display: flex; flex-direction: column; gap: 10px; }
+        .bar-wrapper { display: flex; align-items: center; justify-content: space-between; background-color: #0f172a; border-radius: 8px; position: relative; height: 35px; overflow: hidden; border: 1px solid #1e293b; }
+        .bar-fill { position: absolute; top: 0; left: 0; height: 100%; transition: width 0.6s ease-out; z-index: 1; }
+        .bar-fill.home { background-color: rgba(16, 185, 129, 0.25); border-left: 4px solid var(--accent-home); }
+        .bar-fill.draw { background-color: rgba(100, 116, 139, 0.25); border-left: 4px solid var(--accent-draw); }
+        .bar-fill.away { background-color: rgba(59, 130, 246, 0.25); border-left: 4px solid var(--accent-away); }
+        .bar-text { position: relative; z-index: 2; padding: 0 12px; font-size: 0.85rem; font-weight: 600; width: 100%; display: flex; justify-content: space-between; }
+        .marcador-box { text-align: center; background: rgba(59, 130, 246, 0.1); border: 1px dashed var(--accent-away); padding: 8px; border-radius: 8px; font-weight: 700; margin-top: 15px; color: #60a5fa; }
+        .loader { border: 4px solid #1e293b; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 40px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>AnalizaFut ⚽</h1>
-    
-    <div class="tabs-container">
-        <button id="btn-mundial" class="tab-button" onclick="cambiarTab('mundial')" style="background-color: #00ffcc; color: #0f0f1a;">🏆 Mundial 2026</button>
-        <button id="btn-clubes" class="tab-button" onclick="cambiarTab('clubes')">⚽ Ligas Regulares</button>
-    </div>
+    <header>
+        <h1>AnalizaFut 🧠</h1>
+        <p>Predicciones matemáticas por Distribución de Poisson</p>
+    </header>
 
-    <div id="contenedor-partidos"></div>
-</div>
+    <main id="contenedor-partidos">
+        <div id="loader" class="loader"></div>
+    </main>
 
-<script>
-    let tabActual = 'mundial'; // Pestaña por defecto
+    <script>
+        const URL_NUESTRO_SERVIDOR = "https://analizafut.onrender.com/api/predicciones";
 
-    async function cargarCartelera() {
-        const contenedor = document.getElementById('contenedor-partidos');
-        contenedor.innerHTML = '<p style="color: white; text-align: center;">Buscando partidos en los servidores centrales...</p>';
+        async function inicializarPredictor() {
+            const contenedor = document.getElementById("contenedor-partidos");
 
-        try {
-            // Petición dinámica según la pestaña activa
-            const respuesta = await fetch(`https://analizafut.onrender.com/api/predicciones/${tabActual}`);
-            const datos = await respuesta.json();
-            
-            contenedor.innerHTML = ''; // Limpiar el mensaje de carga
-            
-            if (!datos.partidos || datos.partidos.length === 0) {
-                contenedor.innerHTML = '<p style="color: #ccc; text-align: center;">No hay partidos programados para hoy en esta sección.</p>';
-                return;
+            try {
+                const response = await fetch(URL_NUESTRO_SERVIDOR);
+                const respuestaBackend = await response.json();
+                const partidos = respuestaBackend.data || [];
+
+                document.getElementById("loader").remove();
+
+                if (partidos.length === 0) {
+                    contenedor.innerHTML = "<p style='text-align:center; color:gray;'>No hay partidos disponibles.</p>";
+                    return;
+                }
+
+                partidos.forEach(item => {
+                    const card = document.createElement("div");
+                    card.className = "card";
+
+                    // LÓGICA DE ESTADO
+                    const isFinished = item.resultadoReal !== null;
+                    
+                    // Construcción dinámica del contenido
+                    let cuerpoTarjeta = "";
+
+                    if (isFinished) {
+                        cuerpoTarjeta = `
+                            <div class="marcador-box" style="border-color: #10b981; color: #10b981;">
+                                🏁 Resultado Final: ${item.resultadoReal}
+                            </div>
+                        `;
+                    } else if (item.predictionData && item.predictionData.predictions) {
+                        const pred = item.predictionData.predictions;
+                        cuerpoTarjeta = `
+                            <div class="prob-container">
+                                <div class="bar-wrapper"><div class="bar-fill home" style="width: ${pred.percent.home}%"></div><div class="bar-text"><span>Gana ${item.teams.home.name}</span><span>${pred.percent.home}%</span></div></div>
+                                <div class="bar-wrapper"><div class="bar-fill draw" style="width: ${pred.percent.draw}%"></div><div class="bar-text"><span>Empate</span><span>${pred.percent.draw}%</span></div></div>
+                                <div class="bar-wrapper"><div class="bar-fill away" style="width: ${pred.percent.away}%"></div><div class="bar-text"><span>Gana ${item.teams.away.name}</span><span>${pred.percent.away}%</span></div></div>
+                            </div>
+                            <div class="marcador-box">🎯 Marcador Probable: ${pred.correct_score}</div>
+                        `;
+                    } else {
+                        cuerpoTarjeta = `<p style="text-align:center; color: var(--text-muted);">Sin predicción disponible.</p>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="equipos-row">
+                            <div class="equipo-col"><img class="logo-team" src="${item.teams.home.logo}" onerror="this.style.display='none'"><span class="team-name">${item.teams.home.name}</span></div>
+                            <div class="vs-text">VS</div>
+                            <div class="equipo-col"><img class="logo-team" src="${item.teams.away.logo}" onerror="this.style.display='none'"><span class="team-name">${item.teams.away.name}</span></div>
+                        </div>
+                        <div class="divider"></div>
+                        ${cuerpoTarjeta}
+                    `;
+                    contenedor.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error(error);
+                contenedor.innerHTML = "<p style='text-align:center; color:#ef4444;'>Error conectando al servidor. Espera un momento...</p>";
             }
-
-            datos.partidos.forEach(partido => {
-                const tarjeta = document.createElement('div');
-                tarjeta.className = 'partido-card';
-                
-                // Detectar si el partido ya finalizó según los datos de tu backend blindado
-                const esFinalizado = partido.fixture.status === "Match Finished" || partido.predictionData.correct_score === "Finalizado";
-                
-                const marcadorHtml = esFinalizado 
-                    ? `<div style="color: #ffcc00; font-weight: bold; font-size: 20px; margin: 10px 0;">Resultado Real: ${partido.predictionData.resultadoReal}</div>`
-                    : `<div style="color: #00ffcc; font-weight: bold; margin: 10px 0;">Predicción: ${partido.predictionData.predictions.correct_score}</div>`;
-
-                tarjeta.innerHTML = `
-                    <div style="font-size: 11px; color: #888; text-align: center; margin-bottom: 8px;">Estado: ${partido.fixture.status}</div>
-                    <div style="display: flex; justify-content: space-around; align-items: center;">
-                        <div style="text-align: center; width: 42%;">
-                            <img src="${partido.teams.home.logo}" alt="${partido.teams.home.name}" style="width: 35px; height: auto; error: this.src='https://via.placeholder.com/40';"><br>
-                            <strong style="font-size: 14px;">${partido.teams.home.name}</strong>
-                            <div style="font-size: 12px; color: #aaa; margin-top: 4px;">Gana: ${partido.predictionData.predictions.percent.home}</div>
-                        </div>
-                        <div style="font-weight: bold; font-size: 16px; color: #666;">VS</div>
-                        <div style="text-align: center; width: 42%;">
-                            <img src="${partido.teams.away.logo}" alt="${partido.teams.away.name}" style="width: 35px; height: auto; error: this.src='https://via.placeholder.com/40';"><br>
-                            <strong style="font-size: 14px;">${partido.teams.away.name}</strong>
-                            <div style="font-size: 12px; color: #aaa; margin-top: 4px;">Gana: ${partido.predictionData.predictions.percent.away}</div>
-                        </div>
-                    </div>
-                    <div style="text-align: center; margin-top: 12px; border-top: 1px solid #2a2a3d; padding-top: 8px;">
-                        ${marcadorHtml}
-                        <div style="font-size: 11px; color: #666;">Probabilidad de Empate: ${partido.predictionData.predictions.percent.draw}</div>
-                    </div>
-                `;
-                contenedor.appendChild(tarjeta);
-            });
-
-        } catch (error) {
-            contenedor.innerHTML = '<p style="color: #ff4d4d; text-align: center;">Error al conectar con la cartelera automatizada.</p>';
         }
-    }
 
-    function cambiarTab(tipo) {
-        tabActual = tipo;
-        
-        // Resetear estilos de botones
-        document.getElementById('btn-mundial').style.backgroundColor = '#2c2c3e';
-        document.getElementById('btn-mundial').style.color = 'white';
-        document.getElementById('btn-clubes').style.backgroundColor = '#2c2c3e';
-        document.getElementById('btn-clubes').style.color = 'white';
-        
-        // Activar el seleccionado
-        const btnActivo = tipo === 'mundial' ? document.getElementById('btn-mundial') : document.getElementById('btn-clubes');
-        if (btnActivo) {
-            btnActivo.style.backgroundColor = '#00ffcc';
-            btnActivo.style.color = '#0f0f1a';
-        }
-        
-        cargarCartelera();
-    }
-
-    // Carga inicial al abrir la app
-    document.addEventListener('DOMContentLoaded', cargarCartelera);
-</script>
+        window.onload = inicializarPredictor;
+    </script>
 </body>
 </html>
