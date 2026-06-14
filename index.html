@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <title>AnalizaFut 🧠</title>
     <style>
-        :root { --bg-color: #0f172a; --card-bg: #1e293b; --accent: #3b82f6; }
+        :root { --bg-color: #0f172a; --card-bg: #1e293b; }
         body { font-family: sans-serif; background-color: var(--bg-color); color: #f8fafc; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .tabs { margin-bottom: 20px; display: flex; gap: 10px; }
         .tab-btn { background: #334155; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-        .tab-btn:hover { background: var(--accent); }
+        .tab-btn:hover { background: #3b82f6; }
         .card { background-color: var(--card-bg); width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
         .equipos-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .team-box { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; text-align: center; }
-        .logo-team { width: 50px; height: 50px; object-fit: contain; }
-        .marcador { text-align: center; margin-top: 15px; font-weight: bold; color: #60a5fa; padding: 8px; border: 1px dashed #60a5fa; border-radius: 6px; }
+        .logo-team { width: 40px; height: 40px; object-fit: contain; }
+        .marcador { text-align: center; margin-top: 10px; font-weight: bold; color: #60a5fa; padding: 8px; border: 1px dashed #60a5fa; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -21,10 +21,10 @@
     
     <div class="tabs">
         <button class="tab-btn" onclick="cargar('WC')">Selecciones 🌍</button>
-        <button class="tab-btn" onclick="cargar('CL')">Clubes (Champions) 🏆</button>
+        <button class="tab-btn" onclick="cargar('CL')">Clubes 🏆</button>
     </div>
 
-    <div id="contenedor">Selecciona una categoría...</div>
+    <div id="contenedor">Haz clic en una categoría...</div>
 
     <script>
         const API_URL = "https://analizafut.onrender.com/api/predicciones";
@@ -34,19 +34,19 @@
             cont.innerHTML = "Cargando...";
 
             try {
-                // Ahora enviamos el parámetro ?comp=
                 const res = await fetch(`${API_URL}?comp=${compCode}`);
                 const data = await res.json();
-                cont.innerHTML = "";
+                cont.innerHTML = ""; // Esto limpia la pantalla antes de dibujar lo nuevo
 
                 data.forEach(m => {
                     const card = document.createElement("div");
                     card.className = "card";
+                    
                     const isFinished = m.status === 'FINISHED';
                     
                     let body = isFinished 
-                        ? `<div class="marcador" style="border-color:#10b981; color:#10b981;">🏁 Resultado: ${m.resultadoReal}</div>`
-                        : `<div class="marcador">🎯 Probable: ${m.prediccion.score} | Gana: ${m.prediccion.percent.home}%</div>`;
+                        ? `<div class="marcador" style="border-color:#10b981; color:#10b981;">🏁 Finalizado: ${m.resultadoReal}</div>`
+                        : `<div class="marcador">🎯 Marcador: ${m.prediccion.score} | Gana: ${m.prediccion.percent.home}%</div>`;
 
                     card.innerHTML = `
                         <div class="equipos-row">
@@ -57,7 +57,10 @@
                         ${body}`;
                     cont.appendChild(card);
                 });
-            } catch (e) { cont.innerHTML = "Error al conectar o no hay datos."; }
+            } catch (e) { 
+                cont.innerHTML = "Error al cargar los datos. ¿La API está activa?"; 
+                console.error(e);
+            }
         }
     </script>
 </body>
